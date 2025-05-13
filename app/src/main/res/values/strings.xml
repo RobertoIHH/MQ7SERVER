@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MQ7 Monitor</string>
+    <string name="app_name_wifi">MQ7 Monitor (WiFi)</string>
+    <string name="app_name_ble">MQ7 Monitor (BLE)</string>
+</resources>
