@@ -1,5 +1,5 @@
-// MainActivityWifi.kt
-package com.example.MQ7Monitor
+// MainActivityWifi.kt con importaciones corregidas
+package com.example.mq7server
 
 import android.os.Bundle
 import android.util.Log
@@ -12,7 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.MQ7Monitor.ui.theme.MQ7MonitorTheme
+import com.example.mq7server.ui.theme.MQ7ServerTheme
 import kotlinx.coroutines.launch
 
 class MainActivityWifi : ComponentActivity() {
@@ -23,12 +23,12 @@ class MainActivityWifi : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            MQ7MonitorTheme {
+            MQ7ServerTheme {
                 val viewModelInstance: GasSensorWifiViewModel = viewModel()
                 this.viewModel = viewModelInstance
 
                 // URL del servidor - esto se puede hacer configurable
-                val serverUrl = remember { mutableStateOf("ws://192.168.1.100:3000") }
+                val serverUrl = remember { mutableStateOf("https://lap-zic.tail792329.ts.net/") }
 
                 // Inicializar WebSocketClient
                 LaunchedEffect(Unit) {
@@ -155,12 +155,66 @@ fun WifiSensorGasApp(
             }
         }
 
-        // Reutilizamos SensorGasApp pero con el nuevo ViewModel
-        // Esto funciona porque mantuvimos la misma API en el ViewModel
-        SensorGasApp(
-            viewModel = viewModel,
-            onScanClick = { /* No hacemos nada, no hay escaneo BLE */ }
-        )
+        // Área para mostrar datos del sensor
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (isConnected) {
+                // Aquí mostraremos los datos del sensor
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "Datos del sensor",
+                        style = MaterialTheme.typography.headlineSmall,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+
+                    // Mostrar el tipo de gas actual
+                    Text(
+                        text = "Gas actual: ${currentGasType.name}",
+                        style = MaterialTheme.typography.bodyLarge,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+
+                    // Si hay datos de voltaje, mostrarlos
+                    Text(
+                        text = "Voltaje: ${viewModel.voltage.value} V",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+
+                    // Si hay datos de PPM, mostrarlos
+                    Text(
+                        text = "PPM: ${viewModel.ppmValue.value} ppm",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+
+                    // Si hay datos de ADC, mostrarlos
+                    Text(
+                        text = "ADC: ${viewModel.rawValue.value}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 2.dp)
+                    )
+
+                    // Selector de tipo de gas
+                    GasTypeSelector(
+                        currentGasType = currentGasType,
+                        isChangingGas = isChangingGas,
+                        onGasTypeSelected = { viewModel.changeGasType(it) },
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+            } else {
+                Text("Conéctate al servidor para ver los datos del sensor")
+            }
+        }
     }
 
     // Diálogo para cambiar la URL del servidor
@@ -210,5 +264,61 @@ fun WifiSensorGasApp(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun GasTypeSelector(
+    currentGasType: GasType,
+    isChangingGas: Boolean,
+    onGasTypeSelected: (GasType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "Seleccionar tipo de gas:",
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            // Botones para cada tipo de gas
+            GasType.values().filter { it != GasType.UNKNOWN }.forEach { gasType ->
+                Button(
+                    onClick = { onGasTypeSelected(gasType) },
+                    enabled = !isChangingGas && gasType != currentGasType,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (gasType == currentGasType)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            MaterialTheme.colorScheme.secondary
+                    ),
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                ) {
+                    Text(gasType.name)
+                }
+            }
+        }
+
+        // Indicador de cambio
+        if (isChangingGas) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(top = 8.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(16.dp),
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Cambiando tipo de gas...")
+            }
+        }
     }
 }

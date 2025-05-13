@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.MQ7Monitor">
+    package="com.example.mq7server">
 
     <!-- Permisos para WiFi -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -52,13 +52,6 @@
             </intent-filter>
         </activity>
 
-        <!-- Actividad original con BLE (como alternativa) -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false"
-            android:label="@string/app_name_ble"
-            android:theme="@style/Theme.SensorGas">
-        </activity>
     </application>
 
 </manifest>

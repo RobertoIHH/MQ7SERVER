@@ -1,4 +1,4 @@
-package com.example.MQ7Monitor
+package com.example.mq7server
 
 import android.util.Log
 
